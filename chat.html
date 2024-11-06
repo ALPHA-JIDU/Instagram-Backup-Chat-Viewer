@@ -91,6 +91,8 @@
         .search-input-container {
             display: none;
             align-items: center;
+            opacity: 0; /* Start as hidden */
+            transition: opacity 0.3s ease; /* Smooth transition */
         }
 
         .search-input-container input {
@@ -101,6 +103,7 @@
             background-color: #1a1a1a;
             border-radius: 5px;
             margin-right: 5px;
+            color: #ddd;
         }
 
         .search-input-container button {
@@ -148,6 +151,7 @@
             text-align: center;
             color: #ccc;
             margin: 10px 0;
+            font-size: 11px;
             font-weight: bold;
         }
 
@@ -155,6 +159,7 @@
             font-size: 10px;
             color: #bbb;
             margin-left: 5px;
+            white-space: nowrap; /* Prevent line breaks */
         }
     </style>
 </head>
@@ -177,45 +182,75 @@
         <div id="messages" class="messages"></div>
     </div>
 
-    <script>
-        window.onload = function () {
-            const chatData = JSON.parse(localStorage.getItem('chatData'));
-            if (!chatData) {
-                alert('No chat data found. Please upload a JSON file first.');
-                window.location.href = 'index.html';
-                return;
+<script>
+    window.onload = function () {
+        const chatData = JSON.parse(localStorage.getItem('chatData'));
+        if (!chatData) {
+            alert('No chat data found. Please upload a JSON file first.');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        document.getElementById('sender-name').textContent = chatData.participants[0].name;
+        document.getElementById('receiver-name').textContent = chatData.participants[1].name;
+
+        const messagesContainer = document.getElementById('messages');
+        
+        // Function to format timestamp into date and 12-hour time format
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const options = { day: 'numeric', month: 'short', year: '2-digit' };
+            const formattedDate = date.toLocaleDateString('en-GB', options);
+            const formattedTime = date.toLocaleTimeString('en-US', {
+                hour: 'numeric', minute: 'numeric', hour12: true
+            });
+            return { date: formattedDate, time: formattedTime };
+        }
+
+        // Display each message with date and time beside it
+        chatData.messages.forEach(message => {
+            const { date, time } = formatTimestamp(message.timestamp_ms);
+
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('message-wrapper');
+
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+
+            if (message.sender_name === chatData.participants[0].name) {
+                messageWrapper.classList.add('sender-wrapper');
+                messageDiv.classList.add('sender');
+            } else {
+                messageWrapper.classList.add('receiver-wrapper');
+                messageDiv.classList.add('receiver');
             }
 
-            document.getElementById('sender-name').textContent = chatData.participants[0].name;
-            document.getElementById('receiver-name').textContent = chatData.participants[1].name;
+            // Display the message content with date and time beside it
+            messageDiv.innerHTML = `<span>${message.content}</span> <span class="timestamp">${date} ${time}</span>`;
+            messageWrapper.appendChild(messageDiv);
+            messagesContainer.appendChild(messageWrapper);
+        });
 
-            const messagesContainer = document.getElementById('messages');
-            
-            // Function to format timestamp into date and 12-hour time format
-            function formatTimestamp(timestamp) {
-                const date = new Date(timestamp);
-                const options = { day: 'numeric', month: 'short', year: '2-digit' };
-                const formattedDate = date.toLocaleDateString('en-GB', options);
-                const formattedTime = date.toLocaleTimeString('en-US', {
-                    hour: 'numeric', minute: 'numeric', hour12: true
-                });
-                return { date: formattedDate, time: formattedTime };
-            }
+        const searchToggle = document.getElementById('search-toggle');
+        const searchInputContainer = document.getElementById('search-input-container');
+        const searchIcon = document.querySelector('.search-icon');
 
-            let currentDate = '';
+        searchToggle.addEventListener('click', () => {
+            searchInputContainer.style.display = 'flex';
+            searchInputContainer.style.opacity = '1'; // Fade in
+            searchIcon.style.display = 'none';
+        });
 
-            // Display messages grouped by date
-            chatData.messages.forEach(message => {
+        document.getElementById('search-confirm').addEventListener('click', () => {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filteredMessages = chatData.messages.filter(message => 
+                message.content && message.content.toLowerCase().includes(searchTerm)
+            );
+
+            messagesContainer.innerHTML = '';
+
+            filteredMessages.forEach(message => {
                 const { date, time } = formatTimestamp(message.timestamp_ms);
-                
-                // Add date heading if it's a new date
-                if (date !== currentDate) {
-                    const dateHeading = document.createElement('div');
-                    dateHeading.classList.add('date-heading');
-                    dateHeading.textContent = date;
-                    messagesContainer.appendChild(dateHeading);
-                    currentDate = date;
-                }
 
                 const messageWrapper = document.createElement('div');
                 messageWrapper.classList.add('message-wrapper');
@@ -231,76 +266,25 @@
                     messageDiv.classList.add('receiver');
                 }
 
-                messageDiv.innerHTML = `<span>${message.content}</span> <span class="timestamp">${time}</span>`;
+                // Display the message content with date and time beside it
+                messageDiv.innerHTML = `<span>${message.content}</span> <span class="timestamp">${date} ${time}</span>`;
                 messageWrapper.appendChild(messageDiv);
                 messagesContainer.appendChild(messageWrapper);
             });
+        });
 
-            const searchToggle = document.getElementById('search-toggle');
-            const searchInputContainer = document.getElementById('search-input-container');
-            const searchIcon = document.querySelector('.search-icon');
-
-            searchToggle.addEventListener('click', () => {
-                searchInputContainer.style.display = 'flex';
-                searchIcon.style.display = 'none';
-            });
-
-            document.getElementById('search-confirm').addEventListener('click', () => {
-                const searchTerm = document.getElementById('search-input').value.toLowerCase();
-                const filteredMessages = chatData.messages.filter(message => 
-                    message.content && message.content.toLowerCase().includes(searchTerm)
-                );
-
-                messagesContainer.innerHTML = '';
-                let currentDate = '';
-
-                filteredMessages.forEach(message => {
-                    const { date, time } = formatTimestamp(message.timestamp_ms);
-
-                    if (date !== currentDate) {
-                        const dateHeading = document.createElement('div');
-                        dateHeading.classList.add('date-heading');
-                        dateHeading.textContent = date;
-                        messagesContainer.appendChild(dateHeading);
-                        currentDate = date;
-                    }
-
-                    const messageWrapper = document.createElement('div');
-                    messageWrapper.classList.add('message-wrapper');
-
-                    const messageDiv = document.createElement('div');
-                    messageDiv.classList.add('message');
-
-                    if (message.sender_name === chatData.participants[0].name) {
-                        messageWrapper.classList.add('sender-wrapper');
-                        messageDiv.classList.add('sender');
-                    } else {
-                        messageWrapper.classList.add('receiver-wrapper');
-                        messageDiv.classList.add('receiver');
-                    }
-
-                    messageDiv.innerHTML = `<span>${message.content}</span> <span class="timestamp">${time}</span>`;
-                    messageWrapper.appendChild(messageDiv);
-                    messagesContainer.appendChild(messageWrapper);
-                });
-            });
-
-            document.getElementById('search-close').addEventListener('click', () => {
+        document.getElementById('search-close').addEventListener('click', () => {
+            // Hide search input smoothly
+            searchInputContainer.style.opacity = '0';
+            setTimeout(() => {
                 searchInputContainer.style.display = 'none';
                 searchIcon.style.display = 'block';
                 document.getElementById('search-input').value = '';
 
+                // Reset message display to show all messages with date and time beside each message
                 messagesContainer.innerHTML = '';
-                let currentDate = '';
-
                 chatData.messages.forEach(message => {
-                    const { date, time } = formatTimestamp(message.timestamp_ms);if (date !== currentDate) {
-                        const dateHeading = document.createElement('div');
-                        dateHeading.classList.add('date-heading');
-                        dateHeading.textContent = date;
-                        messagesContainer.appendChild(dateHeading);
-                        currentDate = date;
-                    }
+                    const { date, time } = formatTimestamp(message.timestamp_ms);
 
                     const messageWrapper = document.createElement('div');
                     messageWrapper.classList.add('message-wrapper');
@@ -316,12 +300,14 @@
                         messageDiv.classList.add('receiver');
                     }
 
-                    messageDiv.innerHTML = `<span>${message.content}</span> <span class="timestamp">${time}</span>`;
+                    // Display the message content with date and time beside it
+                    messageDiv.innerHTML = `<span>${message.content}</span> <span class="timestamp">${date} ${time}</span>`;
                     messageWrapper.appendChild(messageDiv);
                     messagesContainer.appendChild(messageWrapper);
                 });
-            });
-        };
-    </script>
+            }, 300); // Delay to allow opacity transition to complete
+        });
+    };
+</script>
 </body>
-</html> 
+</html>
