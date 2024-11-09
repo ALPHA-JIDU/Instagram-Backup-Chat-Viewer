@@ -75,6 +75,12 @@
             color: #ddd;
         }
 
+        .date-range {
+            color: #ddd;
+            font-size: 12px;
+            text-align: center;
+        }
+
         .search-container {
             display: flex;
             align-items: center;
@@ -160,6 +166,7 @@
                 <span id="sender-name"></span>
                 <span id="receiver-name"></span>
             </div>
+            <div class="date-range" id="date-range"></div>
             <div class="search-container">
                 <i class="fas fa-search search-icon" id="search-toggle"></i>
                 <div class="search-input-container" id="search-input-container">
@@ -185,30 +192,38 @@ window.onload = function () {
     document.getElementById('receiver-name').textContent = chatData.participants[1].name;
 
     const messagesContainer = document.getElementById('messages');
+    const dateRangeElement = document.getElementById('date-range');
 
+    // Format timestamps
     function formatTimestamp(timestamp) {
         const date = new Date(timestamp);
         const options = { day: 'numeric', month: 'short', year: '2-digit' };
-        const formattedDate = date.toLocaleDateString('en-GB', options);
-        const formattedTime = date.toLocaleTimeString('en-US', {
-            hour: 'numeric', minute: 'numeric', hour12: true
-        });
-        return { date: formattedDate, time: formattedTime };
+        return date.toLocaleDateString('en-GB', options);
     }
+
+    // Get chat date range
+    function getChatDateRange(messages) {
+        const timestamps = messages.map(msg => msg.timestamp_ms);
+        const oldestTimestamp = Math.min(...timestamps);
+        const newestTimestamp = Math.max(...timestamps);
+        const oldestDate = formatTimestamp(oldestTimestamp);
+        const newestDate = formatTimestamp(newestTimestamp);
+        return `${oldestDate} To ${newestDate}`;
+    }
+
+    dateRangeElement.textContent = getChatDateRange(chatData.messages);
 
     function decodeContent(content) {
         try {
             return decodeURIComponent(escape(content));
         } catch (e) {
-            return content; // return original if decoding fails
+            return content;
         }
     }
 
     function displayMessages(messages) {
         messagesContainer.innerHTML = '';
         messages.forEach(message => {
-            const { date, time } = formatTimestamp(message.timestamp_ms);
-
             const messageWrapper = document.createElement('div');
             messageWrapper.classList.add('message-wrapper');
 
@@ -223,9 +238,7 @@ window.onload = function () {
                 messageDiv.classList.add('receiver');
             }
 
-            // Decode emojis and display content
             let displayContent = message.content ? decodeContent(message.content) : "";
-
             if (message.audio_files && message.audio_files.length > 0) {
                 displayContent = "Audio";
             } else if (message.photos && message.photos.length > 0) {
@@ -234,8 +247,9 @@ window.onload = function () {
                 displayContent = "Video";
             }
 
-            messageDiv.innerHTML = `<span>${displayContent}</span> <span class="timestamp">${date} ${time}</span>`;
-            
+            const timestamp = formatTimestamp(message.timestamp_ms);
+            messageDiv.innerHTML = `<span>${displayContent}</span> <span class="timestamp">${timestamp}</span>`;
+
             if (message.share && message.share.link) {
                 messageDiv.style.cursor = 'pointer';
                 messageDiv.addEventListener('click', () => {
@@ -252,11 +266,11 @@ window.onload = function () {
 
     const searchToggle = document.getElementById('search-toggle');
     const searchInputContainer = document.getElementById('search-input-container');
-    const searchIcon = document.querySelector('.search-icon');
 
     searchToggle.addEventListener('click', () => {
         searchInputContainer.style.display = 'flex';
-        searchIcon.style.display = 'none';
+        searchToggle.style.display = 'none';
+        dateRangeElement.style.display = 'none';
     });
 
     document.getElementById('search-confirm').addEventListener('click', () => {
@@ -270,7 +284,8 @@ window.onload = function () {
 
     document.getElementById('search-close').addEventListener('click', () => {
         searchInputContainer.style.display = 'none';
-        searchIcon.style.display = 'block';
+        searchToggle.style.display = 'block';
+        dateRangeElement.style.display = 'block';
         document.getElementById('search-input').value = '';
 
         displayMessages(chatData.messages);
