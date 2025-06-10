@@ -1,50 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Chat Backup Viewer - Upload</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instagram Chat Backup Viewer - Upload (Dark Mode)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            width: 80%;
-            max-width: 600px;
-            margin: auto;
-            text-align: center;
+            font-family: 'Inter', sans-serif;
+            background: #121212; /* dark background */
+            color: #e0e0e0; /* light text */
+            min-height: 100vh;
         }
 
         .upload-area {
-            border: 2px dashed #ccc;
-            padding: 20px;
-            background-color: #fff;
-            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px dashed #555555;
+            background-color: #1e1e1e;
+            color: #ccc;
+        }
+
+        .upload-area:hover {
+            border-color: #3b82f6; /* Tailwind blue-500 */
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #ffffff;
+        }
+
+        .instagram-gradient {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+
+        .upload-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Override some Tailwind defaults for dark mode */
+        .text-gray-600 {
+            color: #aaa !important;
+        }
+        .text-gray-400 {
+            color: #777 !important;
+        }
+        .text-gray-500 {
+            color: #999 !important;
+        }
+
+        .bg-white {
+            background-color: #1e1e1e !important;
+        }
+
+        .shadow-lg {
+            --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.7);
+            box-shadow: var(--tw-shadow);
+        }
+
+        button.bg-blue-500 {
+            background-color: #3b82f6 !important;
+            color: white !important;
+        }
+        button.bg-blue-500:hover {
+            background-color: #2563eb !important;
+        }
+
+        /* Scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #222;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Upload Instagram Chat JSON</h1>
-        <div id="upload-area" class="upload-area" onclick="document.getElementById('file-input').click()">
-            <p>Drag and drop your JSON file here or click to upload</p>
-            <input type="file" id="file-input" accept=".json" onchange="handleFileUpload(event)" style="display:none;">
+<body class="flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="instagram-gradient p-1"></div>
+
+        <div class="p-6">
+            <div class="flex items-center justify-center mb-6">
+                <div class="text-3xl font-bold bg-clip-text text-transparent instagram-gradient">
+                    Chat Backup Viewer
+                </div>
+            </div>
+
+            <div id="upload-area" class="upload-area rounded-lg p-8 mb-6 flex flex-col items-center justify-center cursor-pointer" onclick="document.getElementById('file-input').click()">
+                <div class="upload-icon text-5xl mb-4">📁</div>
+                <p class="text-gray-600 font-medium mb-2">Drag and drop your JSON file here</p>
+                <p class="text-gray-400 text-sm">or</p>
+                <button class="mt-4 px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors">
+                    Choose File
+                </button>
+                <input type="file" id="file-input" accept=".json" onchange="handleFileUpload(event)" class="hidden" />
+            </div>
+
+            <div class="text-center text-sm text-gray-500">
+                <p>Upload your Instagram chat JSON file to view your conversations</p>
+            </div>
         </div>
     </div>
 
     <script>
+        // Add drag and drop functionality
+        const uploadArea = document.getElementById('upload-area');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            uploadArea.classList.add('border-blue-500');
+            uploadArea.classList.add('bg-blue-900');  // Darker blue background on hover
+            uploadArea.style.color = '#fff';
+        }
+
+        function unhighlight() {
+            uploadArea.classList.remove('border-blue-500');
+            uploadArea.classList.remove('bg-blue-900');
+            uploadArea.style.color = '#ccc';
+        }
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            handleFile(file);
+        }
+
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (file) {
+                // Show loading state
+                uploadArea.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Processing file...</p></div>';
+
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    const jsonData = JSON.parse(e.target.result);
-                    localStorage.setItem('chatData', JSON.stringify(jsonData));
-                    window.location.href = 'chat.html'; // Redirect to chat.html
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        localStorage.setItem('chatData', JSON.stringify(jsonData));
+                        window.location.href = 'chat.html'; // Redirect to chat.html
+                    } catch (error) {
+                        uploadArea.innerHTML = `
+                            <div class="text-red-500 mb-4">❌ Error: Invalid JSON file</div>
+                            <div class="upload-icon text-5xl mb-4">📁</div>
+                            <p class="text-gray-600 font-medium mb-2">Try again with a valid JSON file</p>
+                            <button class="mt-4 px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors">
+                                Choose File
+                            </button>
+                        `;
+                    }
                 };
                 reader.readAsText(file);
             }
