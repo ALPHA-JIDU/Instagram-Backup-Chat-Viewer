@@ -66,9 +66,13 @@
         }
 
         #sender-name {
-            background-color: #404040;
-            color: #ddd;
-        }
+    background-color: transparent !important;
+    color: #ddd;
+    border: 1.5px solid #ddd;
+    padding: 2px 5px;
+    border-radius: 5px;
+    margin-top: 2px;
+}
 
         #receiver-name {
             background-color: #0d3d35;
@@ -139,11 +143,16 @@
             justify-content: flex-end;
         }
 
-        .sender {
-            background-color: #404040;
-            color: #ddd;
-            border-top-left-radius: 0;
-        }
+.sender {
+    background-color: transparent !important;
+    border: 1.5px solid #b9b9b9;
+    color: #ddd;
+    border-radius: 15px;
+    padding: 10px 15px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    border-top-left-radius: 0;
+}
 
         .receiver {
             background-color: #0d3d35;
@@ -293,4 +302,5 @@ window.onload = function () {
 };
 </script>
 </body>
+</html>
 </html>
