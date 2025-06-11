@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -59,20 +60,17 @@
             flex-direction: column;
         }
 
-        #sender-name, #receiver-name {
+        #sender-name,
+        #receiver-name {
             padding: 2px 5px;
             border-radius: 5px;
             margin-top: 2px;
         }
 
         #sender-name {
-    background-color: transparent !important;
-    color: #ddd;
-    border: 1.5px solid #ddd;
-    padding: 2px 5px;
-    border-radius: 5px;
-    margin-top: 2px;
-}
+            background-color: #404040;
+            color: #ddd;
+        }
 
         #receiver-name {
             background-color: #0d3d35;
@@ -84,6 +82,7 @@
             font-size: 12px;
             text-align: center;
         }
+
 
         .search-container {
             display: flex;
@@ -143,16 +142,11 @@
             justify-content: flex-end;
         }
 
-.sender {
-    background-color: transparent !important;
-    border: 1.5px solid #b9b9b9;
-    color: #ddd;
-    border-radius: 15px;
-    padding: 10px 15px;
-    line-height: 1.4;
-    word-wrap: break-word;
-    border-top-left-radius: 0;
-}
+        .sender {
+            background-color: #404040;
+            color: #ddd;
+            border-top-left-radius: 0;
+        }
 
         .receiver {
             background-color: #0d3d35;
@@ -168,6 +162,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="chat-container">
         <div class="chat-header">
@@ -189,118 +184,137 @@
     </div>
 
     <script>
-window.onload = function () {
-    const chatData = JSON.parse(localStorage.getItem('chatData'));
-    if (!chatData) {
-        alert('No chat data found. Please upload a JSON file first.');
-        window.location.href = 'index.html';
-        return;
-    }
-
-    document.getElementById('sender-name').textContent = chatData.participants[0].name;
-    document.getElementById('receiver-name').textContent = chatData.participants[1].name;
-
-    const messagesContainer = document.getElementById('messages');
-    const dateRangeElement = document.getElementById('date-range');
-
-    // Format timestamps
-    function formatTimestamp(timestamp) {
-        const date = new Date(timestamp);
-        const options = { day: 'numeric', month: 'short', year: '2-digit' };
-        return date.toLocaleDateString('en-GB', options);
-    }
-
-    // Get chat date range
-    function getChatDateRange(messages) {
-        const timestamps = messages.map(msg => msg.timestamp_ms);
-        const oldestTimestamp = Math.min(...timestamps);
-        const newestTimestamp = Math.max(...timestamps);
-        const oldestDate = formatTimestamp(oldestTimestamp);
-        const newestDate = formatTimestamp(newestTimestamp);
-        return `${oldestDate} To ${newestDate}`;
-    }
-
-    dateRangeElement.textContent = getChatDateRange(chatData.messages);
-
-    function decodeContent(content) {
-        try {
-            return decodeURIComponent(escape(content));
-        } catch (e) {
-            return content;
-        }
-    }
-
-    function displayMessages(messages) {
-        messagesContainer.innerHTML = '';
-        messages.forEach(message => {
-            const messageWrapper = document.createElement('div');
-            messageWrapper.classList.add('message-wrapper');
-
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-
-            if (message.sender_name === chatData.participants[0].name) {
-                messageWrapper.classList.add('sender-wrapper');
-                messageDiv.classList.add('sender');
-            } else {
-                messageWrapper.classList.add('receiver-wrapper');
-                messageDiv.classList.add('receiver');
+        window.onload = function () {
+            const chatData = JSON.parse(localStorage.getItem('chatData'));
+            if (!chatData) {
+                alert('No chat data found. Please upload a JSON file first.');
+                window.location.href = 'index.html';
+                return;
             }
 
-            let displayContent = message.content ? decodeContent(message.content) : "";
-            if (message.audio_files && message.audio_files.length > 0) {
-                displayContent = "Audio";
-            } else if (message.photos && message.photos.length > 0) {
-                displayContent = "Photo";
-            } else if (message.videos && message.videos.length > 0) {
-                displayContent = "Video";
+            document.getElementById('sender-name').textContent = chatData.participants[0].name;
+            document.getElementById('receiver-name').textContent = chatData.participants[1].name;
+
+            const dateRangeElement = document.getElementById('date-range');
+
+            function formatDateOnly(timestamp) {
+                const date = new Date(timestamp);
+                const options = { day: 'numeric', month: 'short', year: '2-digit' };
+                return date.toLocaleDateString('en-GB', options);
             }
 
-            const timestamp = formatTimestamp(message.timestamp_ms);
-            messageDiv.innerHTML = `<span>${displayContent}</span> <span class="timestamp">${timestamp}</span>`;
+            function getChatDateRange(messages) {
+                const timestamps = messages.map(msg => msg.timestamp_ms);
+                const oldest = Math.min(...timestamps);
+                const newest = Math.max(...timestamps);
+                return `${formatDateOnly(oldest)} To ${formatDateOnly(newest)}`;
+            }
 
-            if (message.share && message.share.link) {
-                messageDiv.style.cursor = 'pointer';
-                messageDiv.addEventListener('click', () => {
-                    window.open(message.share.link, '_blank');
+            dateRangeElement.textContent = getChatDateRange(chatData.messages);
+
+
+            const messagesContainer = document.getElementById('messages');
+
+            function formatTimestamp(timestamp) {
+                const date = new Date(timestamp);
+                const options = { day: 'numeric', month: 'short', year: '2-digit' };
+                const formattedDate = date.toLocaleDateString('en-GB', options);
+                const formattedTime = date.toLocaleTimeString('en-US', {
+                    hour: 'numeric', minute: 'numeric', hour12: true
+                });
+                return { date: formattedDate, time: formattedTime };
+            }
+
+            function decodeContent(content) {
+                try {
+                    return decodeURIComponent(escape(content));
+                } catch (e) {
+                    return content; // return original if decoding fails
+                }
+            }
+
+            function displayMessages(messages) {
+                messagesContainer.innerHTML = '';
+                messages.forEach(message => {
+                    const { date, time } = formatTimestamp(message.timestamp_ms);
+
+                    const messageWrapper = document.createElement('div');
+                    messageWrapper.classList.add('message-wrapper');
+
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message');
+
+                    if (message.sender_name === chatData.participants[0].name) {
+                        messageWrapper.classList.add('sender-wrapper');
+                        messageDiv.classList.add('sender');
+                    } else {
+                        messageWrapper.classList.add('receiver-wrapper');
+                        messageDiv.classList.add('receiver');
+                    }
+
+                    // Decode emojis and display content
+                    let displayContent = message.content ? decodeContent(message.content) : "";
+
+                    if (message.audio_files && message.audio_files.length > 0) {
+                        displayContent = "Audio";
+                    } else if (message.photos && message.photos.length > 0) {
+                        displayContent = "Photo";
+                    } else if (message.videos && message.videos.length > 0) {
+                        displayContent = "Video";
+                    }
+
+                    messageDiv.innerHTML = `<span>${displayContent}</span> <span class="timestamp">${date} ${time}</span>`;
+
+                    if (message.share && message.share.link) {
+                        messageDiv.style.cursor = 'pointer';
+                        messageDiv.addEventListener('click', () => {
+                            window.open(message.share.link, '_blank');
+                        });
+                    }
+
+                    messageWrapper.appendChild(messageDiv);
+                    messagesContainer.appendChild(messageWrapper);
                 });
             }
 
-            messageWrapper.appendChild(messageDiv);
-            messagesContainer.appendChild(messageWrapper);
-        });
-    }
+            displayMessages(chatData.messages);
 
-    displayMessages(chatData.messages);
+            const searchToggle = document.getElementById('search-toggle');
+            const searchInputContainer = document.getElementById('search-input-container');
+            const searchIcon = document.querySelector('.search-icon');
 
-    const searchToggle = document.getElementById('search-toggle');
-    const searchInputContainer = document.getElementById('search-input-container');
+            searchToggle.addEventListener('click', () => {
+                searchInputContainer.style.display = 'flex';
+                searchIcon.style.display = 'none';
 
-    searchToggle.addEventListener('click', () => {
-        searchInputContainer.style.display = 'flex';
-        searchToggle.style.display = 'none';
-        dateRangeElement.style.display = 'none';
-    });
+                // Hide date range
+                const dateRangeElement = document.getElementById('date-range');
+                if (dateRangeElement) dateRangeElement.style.display = 'none';
+            });
 
-    document.getElementById('search-confirm').addEventListener('click', () => {
-        const searchTerm = document.getElementById('search-input').value.toLowerCase();
-        const filteredMessages = chatData.messages.filter(message => 
-            message.content && decodeContent(message.content).toLowerCase().includes(searchTerm)
-        );
+            document.getElementById('search-confirm').addEventListener('click', () => {
+                const searchTerm = document.getElementById('search-input').value.toLowerCase();
+                const filteredMessages = chatData.messages.filter(message =>
+                    message.content && decodeContent(message.content).toLowerCase().includes(searchTerm)
+                );
 
-        displayMessages(filteredMessages);
-    });
+                displayMessages(filteredMessages);
+            });
 
-    document.getElementById('search-close').addEventListener('click', () => {
-        searchInputContainer.style.display = 'none';
-        searchToggle.style.display = 'block';
-        dateRangeElement.style.display = 'block';
-        document.getElementById('search-input').value = '';
+            document.getElementById('search-close').addEventListener('click', () => {
+                searchInputContainer.style.display = 'none';
+                searchIcon.style.display = 'block';
+                document.getElementById('search-input').value = '';
 
-        displayMessages(chatData.messages);
-    });
-};
-</script>
+                // Show date range again
+                const dateRangeElement = document.getElementById('date-range');
+                if (dateRangeElement) dateRangeElement.style.display = 'block';
+
+                displayMessages(chatData.messages);
+            });
+
+        };
+    </script>
 </body>
-</html>
+
 </html>
