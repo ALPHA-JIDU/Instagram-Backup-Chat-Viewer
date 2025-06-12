@@ -198,9 +198,9 @@
 
     .sender:hover {
       box-shadow:
-        #a300001F 0px 2px 1px,
-        #ffffff1f 0px 4px 2px,
-        #ffffff1f 0px 8px 4px;
+        #a3000056 0px 2px 1px,
+        #a3000056 0px 4px 2px,
+        #a3000056 0px 8px 4px;
     }
 
     .receiver:hover {
@@ -402,17 +402,37 @@
       });
 
       document
-        .getElementById("search-confirm")
-        .addEventListener("click", () => {
-          const searchTerm =
-            document.getElementById("search-input").value.toLowerCase();
-          const filteredMessages = chatData.messages.filter(
-            (message) =>
-              message.content &&
-              decodeContent(message.content).toLowerCase().includes(searchTerm)
-          );
-          displayMessages(filteredMessages);
-        });
+  .getElementById("search-confirm")
+  .addEventListener("click", () => {
+    const searchTerm =
+      document.getElementById("search-input").value.toLowerCase();
+    const filteredMessages = chatData.messages.filter(
+      (message) =>
+        message.content &&
+        decodeContent(message.content).toLowerCase().includes(searchTerm)
+    );
+
+    if (filteredMessages.length === 0) {
+      messagesContainer.innerHTML =
+        messagesContainer.innerHTML = `
+  <div style="
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #ccc;
+    font-size: 16px;
+    text-align: center;
+  ">
+    No results found
+  </div>
+`;
+
+    } else {
+      displayMessages(filteredMessages);
+    }
+  });
+
 
       document
         .getElementById("search-close")
