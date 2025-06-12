@@ -191,13 +191,14 @@
     }
 
     .receiver .timestamp {
-  color: #000000; /* Choose your desired color */
-}
+      color: #000000;
+      /* Choose your desired color */
+    }
 
 
     .sender:hover {
       box-shadow:
-       #ffffff1f 0px 2px 1px,
+        #a300001F 0px 2px 1px,
         #ffffff1f 0px 4px 2px,
         #ffffff1f 0px 8px 4px;
     }
@@ -217,46 +218,48 @@
     }
 
     /* Scrollbar customization */
-    
-.messages::-webkit-scrollbar-thumb {
-  background-color: #ffffff5b;
-  border-radius: 5px;
-  min-height: 50px; /* 👈 sets the minimum height */
-}
+
+    .messages::-webkit-scrollbar-thumb {
+      background-color: #ffffff5b;
+      border-radius: 5px;
+      min-height: 50px;
+      /* 👈 sets the minimum height */
+    }
 
 
 
-.messages::-webkit-scrollbar-track {
-  background: transparent;
-}
+    .messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
 
-.messages::-webkit-scrollbar {
-  width: 9px;
-}
+    .messages::-webkit-scrollbar {
+      width: 9px;
+    }
 
-#particles-js {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 0; /* behind chat */
-  top: 0;
-  left: 0;
-}
+    #particles-js {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      /* behind chat */
+      top: 0;
+      left: 0;
+    }
 
-.chat-container {
-  position: relative;
-  z-index: 1; /* in front of particles */
-  width: 90%;
-  max-width: 600px;
-  height: 96vh;
-  margin: auto;
-  border-radius: 10px;
-  overflow: hidden;
-  backdrop-filter: blur(15px);
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
+    .chat-container {
+      position: relative;
+      z-index: 1;
+      /* in front of particles */
+      width: 90%;
+      max-width: 600px;
+      height: 96vh;
+      margin: auto;
+      border-radius: 10px;
+      overflow: hidden;
+      backdrop-filter: blur(15px);
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
   </style>
 </head>
 
@@ -424,19 +427,19 @@
     };
   </script>
   <script>
-  particlesJS("particles-js", {
-    particles: {
-      number: { value: 80, density: { enable: true, value_area: 800 }},
-      color: { value: ["#f9ce34", "#ee2a7b", "#6228d7"] },
-      shape: { type: "circle" },
-      opacity: { value: 0.7, random: true },
-      size: { value: 4, random: true },
-      move: { enable: true, speed: 2, random: true, out_mode: "out" }
-    },
-    interactivity: { detect_on: "canvas", events: { resize: true }},
-    retina_detect: true
-  });
-</script>
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: ["#f9ce34", "#ee2a7b", "#6228d7"] },
+        shape: { type: "circle" },
+        opacity: { value: 0.7, random: true },
+        size: { value: 4, random: true },
+        move: { enable: true, speed: 2, random: true, out_mode: "out" }
+      },
+      interactivity: { detect_on: "canvas", events: { resize: true } },
+      retina_detect: true
+    });
+  </script>
 
 
 </body>
