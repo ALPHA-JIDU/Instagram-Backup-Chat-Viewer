@@ -190,7 +190,7 @@
           try {
             const jsonData = JSON.parse(e.target.result);
             localStorage.setItem('chatData', JSON.stringify(jsonData));
-            window.location.href = 'chat.html'; // Redirect to chat.html
+            window.location.href = '2.html'; // Redirect to chat.html
           } catch (error) {
             uploadArea.innerHTML = `
                             <div class="text-red-500 mb-4">❌ Error: Invalid JSON file</div>
