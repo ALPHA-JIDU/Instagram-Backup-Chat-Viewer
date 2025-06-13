@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Instagram Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <style>
+    /* এখানে তোমার পুরনো CSS গুলো বসাবে */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* ... বাকি CSS আগের মতোই থাকবে ... */
+    /* chat-container, messages, sender, receiver, scrollbar ইত্যাদি */
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div id="chat-names">
+        <span id="sender-name"></span>
+        <span id="receiver-name"></span>
+      </div>
+      <div class="date-range" id="date-range"></div>
+      <div class="search-container">
+        <i class="fas fa-search search-icon" id="search-toggle"></i>
+        <div class="search-input-container" id="search-input-container" style="display:none;">
+          <input type="text" id="search-input" placeholder="Type to search..." />
+          <button id="search-confirm"><i class="fas fa-check"></i></button>
+          <button id="search-close"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+    </div>
+    <div id="messages" class="messages"></div>
+  </div>
+
+  <script>
+    let allMessages = [];
+    let renderedIndex = 0;
+    let isSearching = false;
+    const batchSize = 50;
+
+    function formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      const formattedDate = date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" });
+      const formattedTime = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
+      return { date: formattedDate, time: formattedTime };
+    }
+
+    function decodeContent(content) {
+      try {
+        return decodeURIComponent(escape(content));
+      } catch {
+        return content;
+      }
+    }
+
+    function getChatDateRange(messages) {
+      const timestamps = messages.map(m => m.timestamp_ms);
+      const oldest = Math.min(...timestamps);
+      const newest = Math.max(...timestamps);
+      const formatDateOnly = ts => new Date(ts).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" });
+      return `${formatDateOnly(oldest)} to ${formatDateOnly(newest)}`;
+    }
+
+    function renderMessage(message, chatData, container) {
+      const { date, time } = formatTimestamp(message.timestamp_ms);
+
+      const messageWrapper = document.createElement("div");
+      messageWrapper.classList.add("message-wrapper");
+
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message");
+
+      if (message.sender_name === chatData.participants[0].name) {
+        messageWrapper.classList.add("sender-wrapper");
+        messageDiv.classList.add("sender");
+      } else {
+        messageWrapper.classList.add("receiver-wrapper");
+        messageDiv.classList.add("receiver");
+      }
+
+      let displayContent = message.content ? decodeContent(message.content) : "";
+      if (message.audio_files?.length) displayContent = "🎧 Audio";
+      else if (message.photos?.length) displayContent = "📷 Photo";
+      else if (message.videos?.length) displayContent = "🎥 Video";
+
+      messageDiv.innerHTML = `<span>${displayContent}</span> <span class="timestamp">${date} ${time}</span>`;
+
+      if (message.share?.link) {
+        messageDiv.style.cursor = "pointer";
+        messageDiv.innerHTML = `<span><i class="fas fa-link"></i> ${displayContent}</span> <span class="timestamp">${date} ${time}</span>`;
+        messageDiv.onclick = () => window.open(message.share.link, "_blank");
+      }
+
+      messageWrapper.appendChild(messageDiv);
+      container.appendChild(messageWrapper);
+    }
+
+    function renderInChunks(messages) {
+      const container = document.getElementById("messages");
+
+      function renderNext(deadline) {
+        while (renderedIndex < messages.length && deadline.timeRemaining() > 0) {
+          renderMessage(messages[renderedIndex], {
+            participants: [
+              { name: document.getElementById("sender-name").textContent },
+              { name: document.getElementById("receiver-name").textContent }
+            ]
+          }, container);
+          renderedIndex++;
+        }
+        if (renderedIndex < messages.length && !isSearching) {
+          requestIdleCallback(renderNext);
+        }
+      }
+
+      requestIdleCallback(renderNext);
+    }
+
+    function setupSearch(chatData) {
+      const messagesContainer = document.getElementById("messages");
+      const searchToggle = document.getElementById("search-toggle");
+      const searchInputContainer = document.getElementById("search-input-container");
+      const searchIcon = document.querySelector(".search-icon");
+      const dateRangeElement = document.getElementById("date-range");
+
+      searchToggle.onclick = () => {
+        searchInputContainer.style.display = "flex";
+        searchIcon.style.display = "none";
+        dateRangeElement.style.display = "none";
+      };
+
+      document.getElementById("search-confirm").onclick = () => {
+        const term = document.getElementById("search-input").value.toLowerCase();
+        const filtered = chatData.messages.filter(m => m.content && decodeContent(m.content).toLowerCase().includes(term));
+
+        messagesContainer.innerHTML = "";
+        isSearching = true;
+
+        if (filtered.length === 0) {
+          messagesContainer.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ccc;">No results found</div>`;
+        } else {
+          filtered.reverse().forEach(msg => renderMessage(msg, chatData, messagesContainer));
+        }
+      };
+
+      document.getElementById("search-close").onclick = () => {
+        searchInputContainer.style.display = "none";
+        searchIcon.style.display = "block";
+        dateRangeElement.style.display = "block";
+        document.getElementById("search-input").value = "";
+        messagesContainer.innerHTML = "";
+        isSearching = false;
+        renderedIndex = 0;
+        renderInChunks(allMessages);
+      };
+    }
+
+    window.onload = () => {
+      const chatData = JSON.parse(localStorage.getItem("chatData"));
+      if (!chatData) {
+        alert("No chat data found. Please upload a JSON file first.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      allMessages = chatData.messages.reverse();
+      document.getElementById("sender-name").textContent = chatData.participants[0].name;
+      document.getElementById("receiver-name").textContent = chatData.participants[1].name;
+      document.getElementById("date-range").textContent = getChatDateRange(chatData.messages);
+
+      renderInChunks(allMessages);
+      setupSearch(chatData);
+    };
+  </script>
+
+  <script>
+    // particles.js background initialization
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: ["#f9ce34", "#ee2a7b", "#6228d7"] },
+        shape: { type: "circle" },
+        opacity: { value: 0.7, random: true },
+        size: { value: 4, random: true },
+        move: { enable: true, speed: 2, random: true, out_mode: "out" }
+      },
+      interactivity: { detect_on: "canvas", events: { resize: true } },
+      retina_detect: true
+    });
+  </script>
+</body>
+</html>
