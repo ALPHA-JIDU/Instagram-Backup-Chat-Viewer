@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Instagram Chat</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
   <style>
-    /* এখানে তোমার পুরনো CSS গুলো বসাবে */
+    /* CSS একই রাখা হয়েছে যেমন ছিল */
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
       background-color: #000;
@@ -18,9 +17,151 @@
       align-items: center;
       height: 100vh;
       overflow: hidden;
+      font-family: Arial, sans-serif;
     }
-    /* ... বাকি CSS আগের মতোই থাকবে ... */
-    /* chat-container, messages, sender, receiver, scrollbar ইত্যাদি */
+    .chat-container {
+      position: relative;
+      z-index: 1;
+      width: 90%;
+      max-width: 600px;
+      height: 96vh;
+      margin: auto;
+      border-radius: 10px;
+      overflow: hidden;
+      backdrop-filter: blur(15px);
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: gradientShadow 8s linear infinite;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background-color: rgba(30, 30, 30, 0.7);
+      border-bottom: 1px solid #444;
+      font-size: 13px;
+    }
+    #chat-names {
+      display: flex;
+      flex-direction: column;
+    }
+    #sender-name {
+      border: 1.5px solid #dfdfdf;
+      color: #ddd;
+      padding: 2px 5px;
+      border-radius: 5px;
+      margin-top: 2px;
+    }
+    #receiver-name {
+      background-color: #a30000;
+      color: #ddd;
+      padding: 2px 5px;
+      border-radius: 5px;
+      margin-top: 2px;
+    }
+    .date-range {
+      color: #ddd;
+      font-size: 12px;
+      text-align: center;
+    }
+    .search-container {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .search-icon {
+      font-size: 18px;
+      color: #ddd;
+      cursor: pointer;
+    }
+    .search-input-container {
+      display: none;
+      align-items: center;
+    }
+    .search-input-container input {
+      padding: 5px;
+      background-color: #2c2c2c;
+      border-radius: 5px;
+      margin-right: 5px;
+      color: #a30000;
+      border: none;
+      outline: none;
+    }
+    .search-input-container button {
+      background: none;
+      border: none;
+      color: #ddd;
+      cursor: pointer;
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column-reverse;
+    }
+    .message-wrapper {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .sender-wrapper {
+      justify-content: flex-start;
+    }
+    .receiver-wrapper {
+      justify-content: flex-end;
+    }
+    .message {
+      max-width: 65%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+    .sender {
+      background-color: transparent;
+      color: #ddd;
+      border: 1.5px solid #dfdfdf;
+      border-top-left-radius: 0;
+    }
+    .receiver {
+      background-color: #a30000;
+      color: #fff;
+      border-top-right-radius: 0;
+    }
+    .timestamp {
+      font-size: 11px;
+      color: #c9c9c9;
+      margin-left: 5px;
+      white-space: nowrap;
+    }
+    @keyframes gradientShadow {
+      0%, 100% {
+        box-shadow: rgba(249, 206, 52, 0.6) 3px 3px 10px 1px inset,
+                    rgba(238, 42, 123, 0.6) -3px -3px 10px 2px inset,
+                    rgba(98, 40, 215, 0.6) 0px 0px 15px 4px inset;
+      }
+      33% {
+        box-shadow: rgba(238, 42, 123, 0.6) 3px 3px 10px 1px inset,
+                    rgba(98, 40, 215, 0.6) -3px -3px 10px 2px inset,
+                    rgba(249, 206, 52, 0.6) 0px 0px 15px 4px inset;
+      }
+      66% {
+        box-shadow: rgba(98, 40, 215, 0.6) 3px 3px 10px 1px inset,
+                    rgba(249, 206, 52, 0.6) -3px -3px 10px 2px inset,
+                    rgba(238, 42, 123, 0.6) 0px 0px 15px 4px inset;
+      }
+    }
+    #particles-js {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      top: 0;
+      left: 0;
+    }
   </style>
 </head>
 <body>
@@ -34,7 +175,7 @@
       <div class="date-range" id="date-range"></div>
       <div class="search-container">
         <i class="fas fa-search search-icon" id="search-toggle"></i>
-        <div class="search-input-container" id="search-input-container" style="display:none;">
+        <div class="search-input-container" id="search-input-container">
           <input type="text" id="search-input" placeholder="Type to search..." />
           <button id="search-confirm"><i class="fas fa-check"></i></button>
           <button id="search-close"><i class="fas fa-times"></i></button>
@@ -43,150 +184,148 @@
     </div>
     <div id="messages" class="messages"></div>
   </div>
-
   <script>
-    let allMessages = [];
-    let renderedIndex = 0;
-    let isSearching = false;
-    const batchSize = 50;
+    const messagesContainer = document.getElementById("messages");
+    const BATCH_SIZE = 100;
+    let currentIndex = 0;
+    let chatData;
 
-    function formatTimestamp(timestamp) {
-      const date = new Date(timestamp);
-      const formattedDate = date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" });
-      const formattedTime = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
-      return { date: formattedDate, time: formattedTime };
+    function formatDate(timestamp) {
+      const d = new Date(timestamp);
+      return {
+        date: d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" }),
+        time: d.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true })
+      };
     }
 
     function decodeContent(content) {
-      try {
-        return decodeURIComponent(escape(content));
-      } catch {
-        return content;
+      try { return decodeURIComponent(escape(content)); } catch { return content; }
+    }
+
+    function createMessage(msg) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "message-wrapper " + (msg.sender_name === chatData.participants[0].name ? "sender-wrapper" : "receiver-wrapper");
+
+      const message = document.createElement("div");
+      message.className = "message " + (msg.sender_name === chatData.participants[0].name ? "sender" : "receiver");
+
+      let content = msg.content ? decodeContent(msg.content) : "";
+      if (msg.audio_files?.length) content = "🎧 Audio";
+      else if (msg.photos?.length) content = "📷 Photo";
+      else if (msg.videos?.length) content = "🎥 Video";
+
+      const { date, time } = formatDate(msg.timestamp_ms);
+      message.innerHTML = `<span>${content}</span> <span class="timestamp">${date} ${time}</span>`;
+
+      if (msg.share?.link) {
+        message.style.cursor = "pointer";
+        message.onclick = () => window.open(msg.share.link, "_blank");
       }
+
+      wrapper.appendChild(message);
+      return wrapper;
+    }
+
+    function loadMessages() {
+      const batch = chatData.messages.slice(currentIndex, currentIndex + BATCH_SIZE);
+      const fragment = document.createDocumentFragment();
+
+      batch.reverse().forEach(msg => fragment.appendChild(createMessage(msg)));
+
+      // If more messages to load, add Load More button
+      if (currentIndex + BATCH_SIZE < chatData.messages.length) {
+        const loadMore = document.createElement("div");
+        loadMore.style.textAlign = "center";
+        loadMore.style.margin = "15px 0";
+        const btn = document.createElement("button");
+        btn.textContent = "⬆️ Load Older Messages";
+        btn.style.background = "#a30000";
+        btn.style.color = "white";
+        btn.style.padding = "6px 12px";
+        btn.style.borderRadius = "5px";
+        btn.style.cursor = "pointer";
+
+        btn.onclick = () => {
+          loadMore.remove();
+          currentIndex += BATCH_SIZE;
+          loadMessages();
+        };
+
+        loadMore.appendChild(btn);
+        fragment.appendChild(loadMore);
+      }
+
+      messagesContainer.appendChild(fragment);
     }
 
     function getChatDateRange(messages) {
-      const timestamps = messages.map(m => m.timestamp_ms);
-      const oldest = Math.min(...timestamps);
-      const newest = Math.max(...timestamps);
-      const formatDateOnly = ts => new Date(ts).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" });
-      return `${formatDateOnly(oldest)} to ${formatDateOnly(newest)}`;
+      const times = messages.map(m => m.timestamp_ms);
+      const oldest = Math.min(...times);
+      const newest = Math.max(...times);
+      return `${new Date(oldest).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" })} To ${new Date(newest).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" })}`;
     }
 
-    function renderMessage(message, chatData, container) {
-      const { date, time } = formatTimestamp(message.timestamp_ms);
-
-      const messageWrapper = document.createElement("div");
-      messageWrapper.classList.add("message-wrapper");
-
-      const messageDiv = document.createElement("div");
-      messageDiv.classList.add("message");
-
-      if (message.sender_name === chatData.participants[0].name) {
-        messageWrapper.classList.add("sender-wrapper");
-        messageDiv.classList.add("sender");
-      } else {
-        messageWrapper.classList.add("receiver-wrapper");
-        messageDiv.classList.add("receiver");
-      }
-
-      let displayContent = message.content ? decodeContent(message.content) : "";
-      if (message.audio_files?.length) displayContent = "🎧 Audio";
-      else if (message.photos?.length) displayContent = "📷 Photo";
-      else if (message.videos?.length) displayContent = "🎥 Video";
-
-      messageDiv.innerHTML = `<span>${displayContent}</span> <span class="timestamp">${date} ${time}</span>`;
-
-      if (message.share?.link) {
-        messageDiv.style.cursor = "pointer";
-        messageDiv.innerHTML = `<span><i class="fas fa-link"></i> ${displayContent}</span> <span class="timestamp">${date} ${time}</span>`;
-        messageDiv.onclick = () => window.open(message.share.link, "_blank");
-      }
-
-      messageWrapper.appendChild(messageDiv);
-      container.appendChild(messageWrapper);
-    }
-
-    function renderInChunks(messages) {
-      const container = document.getElementById("messages");
-
-      function renderNext(deadline) {
-        while (renderedIndex < messages.length && deadline.timeRemaining() > 0) {
-          renderMessage(messages[renderedIndex], {
-            participants: [
-              { name: document.getElementById("sender-name").textContent },
-              { name: document.getElementById("receiver-name").textContent }
-            ]
-          }, container);
-          renderedIndex++;
-        }
-        if (renderedIndex < messages.length && !isSearching) {
-          requestIdleCallback(renderNext);
-        }
-      }
-
-      requestIdleCallback(renderNext);
-    }
-
-    function setupSearch(chatData) {
-      const messagesContainer = document.getElementById("messages");
-      const searchToggle = document.getElementById("search-toggle");
-      const searchInputContainer = document.getElementById("search-input-container");
-      const searchIcon = document.querySelector(".search-icon");
-      const dateRangeElement = document.getElementById("date-range");
-
-      searchToggle.onclick = () => {
-        searchInputContainer.style.display = "flex";
-        searchIcon.style.display = "none";
-        dateRangeElement.style.display = "none";
-      };
-
-      document.getElementById("search-confirm").onclick = () => {
-        const term = document.getElementById("search-input").value.toLowerCase();
-        const filtered = chatData.messages.filter(m => m.content && decodeContent(m.content).toLowerCase().includes(term));
-
-        messagesContainer.innerHTML = "";
-        isSearching = true;
-
-        if (filtered.length === 0) {
-          messagesContainer.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ccc;">No results found</div>`;
-        } else {
-          filtered.reverse().forEach(msg => renderMessage(msg, chatData, messagesContainer));
-        }
-      };
-
-      document.getElementById("search-close").onclick = () => {
-        searchInputContainer.style.display = "none";
-        searchIcon.style.display = "block";
-        dateRangeElement.style.display = "block";
-        document.getElementById("search-input").value = "";
-        messagesContainer.innerHTML = "";
-        isSearching = false;
-        renderedIndex = 0;
-        renderInChunks(allMessages);
-      };
+    function showFullMessages(messages) {
+      messagesContainer.innerHTML = "";
+      messages.reverse().forEach(msg => messagesContainer.appendChild(createMessage(msg)));
     }
 
     window.onload = () => {
-      const chatData = JSON.parse(localStorage.getItem("chatData"));
+      chatData = JSON.parse(localStorage.getItem("chatData"));
       if (!chatData) {
         alert("No chat data found. Please upload a JSON file first.");
         window.location.href = "index.html";
         return;
       }
 
-      allMessages = chatData.messages.reverse();
       document.getElementById("sender-name").textContent = chatData.participants[0].name;
       document.getElementById("receiver-name").textContent = chatData.participants[1].name;
       document.getElementById("date-range").textContent = getChatDateRange(chatData.messages);
 
-      renderInChunks(allMessages);
-      setupSearch(chatData);
+      // Initially load first batch
+      currentIndex = 0;
+      messagesContainer.innerHTML = "";
+      loadMessages();
+
+      // Search toggle show/hide
+      const searchToggle = document.getElementById("search-toggle");
+      const searchInputContainer = document.getElementById("search-input-container");
+      const searchIcon = document.querySelector(".search-icon");
+      const dateRange = document.getElementById("date-range");
+
+      searchToggle.onclick = () => {
+        searchInputContainer.style.display = "flex";
+        searchIcon.style.display = "none";
+        dateRange.style.display = "none";
+      };
+
+      document.getElementById("search-confirm").onclick = () => {
+        const term = document.getElementById("search-input").value.toLowerCase().trim();
+        if (!term) return;
+
+        const filtered = chatData.messages.filter(m => m.content && decodeContent(m.content).toLowerCase().includes(term));
+        if (filtered.length === 0) {
+          messagesContainer.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;">No results found</div>`;
+        } else {
+          showFullMessages(filtered);
+        }
+      };
+
+      document.getElementById("search-close").onclick = () => {
+        searchInputContainer.style.display = "none";
+        searchIcon.style.display = "block";
+        dateRange.style.display = "block";
+        document.getElementById("search-input").value = "";
+        messagesContainer.innerHTML = "";
+        currentIndex = 0;
+        loadMessages();
+      };
     };
+
   </script>
 
   <script>
-    // particles.js background initialization
+    // particles.js initialization
     particlesJS("particles-js", {
       particles: {
         number: { value: 80, density: { enable: true, value_area: 800 } },
